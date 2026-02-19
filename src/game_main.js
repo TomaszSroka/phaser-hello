@@ -30,7 +30,10 @@ const BOARD_OFFSET_X = BOARD_CONFIG.offsetX;
 const BOARD_OFFSET_Y = BOARD_CONFIG.offsetY;
 
 // --- PRELOAD ---
-function preload() {}
+function preload() {
+    this.load.image('x-sword', 'assets/images/x-sword.svg');
+    this.load.image('o-circle', 'assets/images/o-circle.svg');
+}
 
 // --- CREATE ---
 function create() {
@@ -148,16 +151,9 @@ function drawSymbol(cellIndex) {
     const x = BOARD_OFFSET_X + col * CELL_SIZE + CELL_SIZE / 2;
     const y = BOARD_OFFSET_Y + row * CELL_SIZE + CELL_SIZE / 2;
 
-    const symbol = board[cellIndex] === 1 ? 'X' : 'O';
-    const color = board[cellIndex] === 1 ? '#ff6666' : '#66ff66';
-
-    const symbolConfig = {
-        ...FONTS.symbol,
-        fill: color
-    };
-
-    const text = this.add.text(x, y, symbol, symbolConfig);
-    text.setOrigin(0.5, 0.5);
+    const symbolKey = board[cellIndex] === 1 ? 'x-sword' : 'o-circle';
+    const image = gameScene.add.image(x, y, symbolKey);
+    image.setScale(0.7);
 }
 
 // Sprawdzanie zwycięstwa
@@ -192,6 +188,8 @@ function checkDraw() {
 
 // Aktualizacja komunikatu o wyniku gry
 function updateGameMessage() {
+    playerTurnText.setVisible(false);
+    
     if (gameWinner === 1) {
         messageText.setText('Wygrywa Krzyżyk !!!');
     } else if (gameWinner === 2) {
@@ -222,13 +220,15 @@ function resetGame() {
     gameWon = false;
     gameWinner = null;
     messageText.setText('');
+    playerTurnText.setVisible(true);
     playerTurnText.setText('Teraz kolej Krzyżyka ...');
     restartButton.setVisible(false);
 
-    // Usuwamy stare symbole - kopiujemy listę aby uniknąć problemów z modyfikacją podczas iteracji
-    const textObjects = gameScene.children.list.slice();
-    textObjects.forEach(child => {
-        if (child instanceof Phaser.GameObjects.Text && child !== messageText && child !== restartButton && child !== playerTurnText) {
+    // Usuwamy stare symbole (zarówno Text jak i Image) - kopiujemy listę aby uniknąć problemów z modyfikacją podczas iteracji
+    const childObjects = gameScene.children.list.slice();
+    childObjects.forEach(child => {
+        if ((child instanceof Phaser.GameObjects.Text || child instanceof Phaser.GameObjects.Image) && 
+            child !== messageText && child !== restartButton && child !== playerTurnText) {
             child.destroy();
         }
     });
