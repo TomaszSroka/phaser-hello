@@ -3,6 +3,13 @@ body {
     background: #1e1e1e;
     color: white;
     text-align: center;
+    margin: 0;
+    padding: 20px 0;
+}
+
+h1 {
+    width: 800px;
+    margin: 0 auto 30px auto;
 }
 
 #game {
