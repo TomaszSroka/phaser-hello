@@ -34,13 +34,13 @@ const FONTS = {
 
 // Stałe gry
 const GAME_CONFIG = {
-    width: 400,
+    width: 600,
     height: 500,
     backgroundColor: '#444444'
 };
 
 const BOARD_CONFIG = {
     cellSize: 100,
-    offsetX: 50,
+    offsetX: 129,
     offsetY: 64
 };

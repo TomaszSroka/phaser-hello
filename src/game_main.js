@@ -22,7 +22,10 @@ let gameWinner = null; // 1 = X wygrał, 2 = O wygrał, 'draw' = remis
 let cells = [];
 let messageText;
 let restartButton;
-let playerTurnText;
+let knightTurnText; // Tekst dla Krzyżyka (lewo)
+let carTurnText;    // Tekst dla Kółka (prawo)
+let knightIcon;
+let carIcon;
 let gameScene = null; // Referencja do sceny
 
 const CELL_SIZE = BOARD_CONFIG.cellSize;
@@ -31,8 +34,10 @@ const BOARD_OFFSET_Y = BOARD_CONFIG.offsetY;
 
 // --- PRELOAD ---
 function preload() {
-    this.load.image('x-sword', 'assets/images/x-sword.svg');
-    this.load.image('o-circle', 'assets/images/o-circle.svg');
+    this.load.image('x-sword', 'assets/images/x_sword.svg');
+    this.load.image('o-circle', 'assets/images/o_circle.svg');
+    this.load.image('knight-player', 'assets/images/knight_player.png');
+    this.load.image('car-computer', 'assets/images/car_computer.webp');
 }
 
 // --- CREATE ---
@@ -110,16 +115,33 @@ function create() {
         cells.push(cell);
     }
 
-    // Tekst informujący czyja kolej
-    playerTurnText = this.add.text(200, 20, 'Teraz kolej Krzyżyka ...', FONTS.message);
-    playerTurnText.setOrigin(0.5, 0);
+    // Tekst informujący o kolei Krzyżyka (lewo)
+    knightTurnText = this.add.text(35, 20, 'Teraz kolej Krzyżyka ...', FONTS.message);
+    knightTurnText.setOrigin(0, 0);
+    knightTurnText.setAlign('left');
+
+    // Tekst informujący o kolei Kółka (prawo)
+    carTurnText = this.add.text(565, 20, 'Teraz kolej Kółka ...', FONTS.message);
+    carTurnText.setOrigin(1, 0);
+    carTurnText.setAlign('right');
+    carTurnText.setVisible(false);
+
+    // Ikona gracza (rycerzyk) po lewej stronie
+    knightIcon = this.add.image(65, 214, 'knight-player');
+    knightIcon.setScale(0.24);
+    knightIcon.setDepth(100);
+
+    // Ikona computera (samochodzik) po prawej stronie
+    carIcon = this.add.image(515, 214, 'car-computer');
+    carIcon.setScale(0.105);
+    carIcon.setDepth(100);
 
     // Tekst wiadomości poniżej planszy
-    messageText = this.add.text(200, 384, '', FONTS.message);
+    messageText = this.add.text(279, 384, '', FONTS.message);
     messageText.setOrigin(0.5, 0);
 
     // Przycisk restart
-    restartButton = this.add.text(200, 451, 'Restart gry', FONTS.button);
+    restartButton = this.add.text(279, 451, 'Restart gry', FONTS.button);
     restartButton.setOrigin(0.5, 0.5);
     restartButton.setInteractive();
     restartButton.setVisible(false);
@@ -188,7 +210,8 @@ function checkDraw() {
 
 // Aktualizacja komunikatu o wyniku gry
 function updateGameMessage() {
-    playerTurnText.setVisible(false);
+    knightTurnText.setVisible(false);
+    carTurnText.setVisible(false);
     
     if (gameWinner === 1) {
         messageText.setText('Wygrywa Krzyżyk !!!');
@@ -202,9 +225,11 @@ function updateGameMessage() {
 // Aktualizacja informacji o kolei gracza
 function updatePlayerTurn() {
     if (currentPlayer === 1) {
-        playerTurnText.setText('Teraz kolej Krzyżyka ...');
+        knightTurnText.setVisible(true);
+        carTurnText.setVisible(false);
     } else {
-        playerTurnText.setText('Teraz kolej Kółka ...');
+        knightTurnText.setVisible(false);
+        carTurnText.setVisible(true);
     }
 }
 
@@ -220,15 +245,16 @@ function resetGame() {
     gameWon = false;
     gameWinner = null;
     messageText.setText('');
-    playerTurnText.setVisible(true);
-    playerTurnText.setText('Teraz kolej Krzyżyka ...');
+    knightTurnText.setVisible(true);
+    carTurnText.setVisible(false);
     restartButton.setVisible(false);
 
     // Usuwamy stare symbole (zarówno Text jak i Image) - kopiujemy listę aby uniknąć problemów z modyfikacją podczas iteracji
     const childObjects = gameScene.children.list.slice();
     childObjects.forEach(child => {
         if ((child instanceof Phaser.GameObjects.Text || child instanceof Phaser.GameObjects.Image) && 
-            child !== messageText && child !== restartButton && child !== playerTurnText) {
+            child !== messageText && child !== restartButton && child !== knightTurnText && child !== carTurnText &&
+            child !== knightIcon && child !== carIcon) {
             child.destroy();
         }
     });
