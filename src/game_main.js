@@ -22,6 +22,7 @@ let gameWinner = null; // 1 = X wygrał, 2 = O wygrał, 'draw' = remis
 let cells = [];
 let messageText;
 let restartButton;
+let playerTurnText;
 let gameScene = null; // Referencja do sceny
 
 const CELL_SIZE = BOARD_CONFIG.cellSize;
@@ -99,18 +100,23 @@ function create() {
 
                 // Zmieniamy gracza
                 currentPlayer = currentPlayer === 1 ? 2 : 1;
+                updatePlayerTurn();
             }
         });
 
         cells.push(cell);
     }
 
+    // Tekst informujący czyja kolej
+    playerTurnText = this.add.text(200, 20, 'Teraz kolej Krzyżyka ...', FONTS.message);
+    playerTurnText.setOrigin(0.5, 0);
+
     // Tekst wiadomości poniżej planszy
-    messageText = this.add.text(200, 380, '', FONTS.message);
+    messageText = this.add.text(200, 384, '', FONTS.message);
     messageText.setOrigin(0.5, 0);
 
     // Przycisk restart
-    restartButton = this.add.text(200, 460, 'Restart gry', FONTS.button);
+    restartButton = this.add.text(200, 451, 'Restart gry', FONTS.button);
     restartButton.setOrigin(0.5, 0.5);
     restartButton.setInteractive();
     restartButton.setVisible(false);
@@ -187,11 +193,20 @@ function checkDraw() {
 // Aktualizacja komunikatu o wyniku gry
 function updateGameMessage() {
     if (gameWinner === 1) {
-        messageText.setText('Koniec - wygrywa krzyżyk');
+        messageText.setText('Wygrywa Krzyżyk !!!');
     } else if (gameWinner === 2) {
-        messageText.setText('Koniec - wygrywa kółko');
+        messageText.setText('Wygrywa Kółko !!!');
     } else if (gameWinner === 'draw') {
         messageText.setText('Koniec - remis');
+    }
+}
+
+// Aktualizacja informacji o kolei gracza
+function updatePlayerTurn() {
+    if (currentPlayer === 1) {
+        playerTurnText.setText('Teraz kolej Krzyżyka ...');
+    } else {
+        playerTurnText.setText('Teraz kolej Kółka ...');
     }
 }
 
@@ -207,12 +222,13 @@ function resetGame() {
     gameWon = false;
     gameWinner = null;
     messageText.setText('');
+    playerTurnText.setText('Teraz kolej Krzyżyka ...');
     restartButton.setVisible(false);
 
     // Usuwamy stare symbole - kopiujemy listę aby uniknąć problemów z modyfikacją podczas iteracji
     const textObjects = gameScene.children.list.slice();
     textObjects.forEach(child => {
-        if (child instanceof Phaser.GameObjects.Text && child !== messageText && child !== restartButton) {
+        if (child instanceof Phaser.GameObjects.Text && child !== messageText && child !== restartButton && child !== playerTurnText) {
             child.destroy();
         }
     });
