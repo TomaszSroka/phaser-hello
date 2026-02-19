@@ -1,9 +1,9 @@
 // --- KONFIGURACJA GRY ---
 const config = {
     type: Phaser.AUTO,
-    width: 400,
-    height: 500,
-    backgroundColor: '#222',
+    width: GAME_CONFIG.width,
+    height: GAME_CONFIG.height,
+    backgroundColor: GAME_CONFIG.backgroundColor,
     parent: 'game',
     scene: {
         preload: preload,
@@ -21,16 +21,20 @@ let gameWon = false;
 let gameWinner = null; // 1 = X wygrał, 2 = O wygrał, 'draw' = remis
 let cells = [];
 let messageText;
+let restartButton;
+let gameScene = null; // Referencja do sceny
 
-const CELL_SIZE = 100;
-const BOARD_OFFSET_X = 50;
-const BOARD_OFFSET_Y = 50;
+const CELL_SIZE = BOARD_CONFIG.cellSize;
+const BOARD_OFFSET_X = BOARD_CONFIG.offsetX;
+const BOARD_OFFSET_Y = BOARD_CONFIG.offsetY;
 
 // --- PRELOAD ---
 function preload() {}
 
 // --- CREATE ---
 function create() {
+    gameScene = this;
+
     // Rysujemy planszę 3x3
     for (let i = 0; i < 9; i++) {
         const row = Math.floor(i / 3);
@@ -47,22 +51,10 @@ function create() {
         // Licznik kliknięć
         cell.clickCount = 0;
 
-        // Obsługa double-click (przy zakończeniu gry double-click = restart)
+        // Obsługa double-click
         cell.on('pointerdown', (pointer) => {
-            // Reset licznika jeśli minęło za dużo czasu
-            if (cell.lastClickTime && pointer.downTime - cell.lastClickTime > 300) {
-                cell.clickCount = 1;
-            } else {
-                cell.clickCount++;
-            }
-            cell.lastClickTime = pointer.downTime;
-
             if (gameWon) {
-                // Jeśli gra się skończyła, double-click = restart
-                if (cell.clickCount === 2) {
-                    resetGame.call(this);
-                    cell.clickCount = 0;
-                }
+                // Jeśli gra się skończyła, ignore clicks
                 return;
             }
 
@@ -70,6 +62,14 @@ function create() {
             if (board[cell.cellIndex] !== 0) {
                 return;
             }
+
+            // Reset licznika jeśli minęło za dużo czasu
+            if (cell.lastClickTime && pointer.downTime - cell.lastClickTime > 300) {
+                cell.clickCount = 1;
+            } else {
+                cell.clickCount++;
+            }
+            cell.lastClickTime = pointer.downTime;
 
             // Double-click w trakcie gry
             if (cell.clickCount === 2) {
@@ -84,6 +84,7 @@ function create() {
                     gameWon = true;
                     gameWinner = currentPlayer;
                     updateGameMessage();
+                    showRestartButton();
                     return;
                 }
 
@@ -92,6 +93,7 @@ function create() {
                     gameWon = true;
                     gameWinner = 'draw';
                     updateGameMessage();
+                    showRestartButton();
                     return;
                 }
 
@@ -104,11 +106,28 @@ function create() {
     }
 
     // Tekst wiadomości poniżej planszy
-    messageText = this.add.text(200, 380, '', {
-        fontSize: '24px',
-        fill: '#ffff00'
-    });
+    messageText = this.add.text(200, 380, '', FONTS.message);
     messageText.setOrigin(0.5, 0);
+
+    // Przycisk restart
+    restartButton = this.add.text(200, 460, 'Restart gry', FONTS.button);
+    restartButton.setOrigin(0.5, 0.5);
+    restartButton.setInteractive();
+    restartButton.setVisible(false);
+
+    // Obsługa kliknięcia przycisku
+    restartButton.on('pointerdown', () => {
+        resetGame.call(this);
+    });
+
+    // Hover effect
+    restartButton.on('pointerover', () => {
+        restartButton.setBackgroundColor('#555555');
+    });
+
+    restartButton.on('pointerout', () => {
+        restartButton.setBackgroundColor('#333333');
+    });
 }
 
 // --- UPDATE ---
@@ -126,11 +145,12 @@ function drawSymbol(cellIndex) {
     const symbol = board[cellIndex] === 1 ? 'X' : 'O';
     const color = board[cellIndex] === 1 ? '#ff6666' : '#66ff66';
 
-    const text = this.add.text(x, y, symbol, {
-        fontSize: '60px',
-        fill: color,
-        fontStyle: 'bold'
-    });
+    const symbolConfig = {
+        ...FONTS.symbol,
+        fill: color
+    };
+
+    const text = this.add.text(x, y, symbol, symbolConfig);
     text.setOrigin(0.5, 0.5);
 }
 
@@ -167,12 +187,17 @@ function checkDraw() {
 // Aktualizacja komunikatu o wyniku gry
 function updateGameMessage() {
     if (gameWinner === 1) {
-        messageText.setText('KONIEC - WYGRYWA KRZYŻYK');
+        messageText.setText('Koniec - wygrywa krzyżyk');
     } else if (gameWinner === 2) {
-        messageText.setText('KONIEC - WYGRYWA KÓŁKO');
+        messageText.setText('Koniec - wygrywa kółko');
     } else if (gameWinner === 'draw') {
-        messageText.setText('KONIEC - REMIS');
+        messageText.setText('Koniec - remis');
     }
+}
+
+// Pokazywanie przycisku restart
+function showRestartButton() {
+    restartButton.setVisible(true);
 }
 
 // Reset gry
@@ -182,11 +207,12 @@ function resetGame() {
     gameWon = false;
     gameWinner = null;
     messageText.setText('');
+    restartButton.setVisible(false);
 
     // Usuwamy stare symbole - kopiujemy listę aby uniknąć problemów z modyfikacją podczas iteracji
-    const textObjects = this.children.list.slice();
+    const textObjects = gameScene.children.list.slice();
     textObjects.forEach(child => {
-        if (child instanceof Phaser.GameObjects.Text && child !== messageText) {
+        if (child instanceof Phaser.GameObjects.Text && child !== messageText && child !== restartButton) {
             child.destroy();
         }
     });
