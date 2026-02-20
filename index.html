@@ -22,7 +22,47 @@
         </div>
     </div>
     
-    <div id="game"></div>
+    <!-- Kontener dla gry i historii -->
+    <div id="gameContainer">
+        <!-- Historia użytkownika po lewej -->
+        <div id="historyPanel" class="history-panel">
+            <h3>Historia użytkownika</h3>
+            <table id="gamesTable">
+                <thead>
+                    <tr>
+                        <th>Wynik</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody id="gamesTableBody">
+                    <tr>
+                        <td colspan="2">Brak danych</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Gra po środku -->
+        <div id="game"></div>
+        
+        <!-- Nowa pusta tabela po prawej -->
+        <div id="statsPanel" class="history-panel">
+            <h3>Historia gier</h3>
+            <table id="statsTable">
+                <thead>
+                    <tr>
+                        <th>Gracz</th>
+                        <th>Wygrane</th>
+                    </tr>
+                </thead>
+                <tbody id="statsTableBody">
+                    <tr>
+                        <td colspan="2">Ładowanie...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <script src="game/config.js"></script>
     <script src="game/logic.js"></script>
@@ -33,10 +73,14 @@
     
     <script>
         // Zmienna globalna z nazwą gracza
-        window.currentPlayerName = '';
+        window.currentPlayerName = 'Anonim';
         
         // Obsługa modala z nazwą gracza
         document.addEventListener('DOMContentLoaded', () => {
+            // Załaduj topowych graczy na starcie
+            loadTopPlayers();
+            
+            // Obsługa modala z nazwą gracza
             const modal = document.getElementById('playerNameModal');
             const input = document.getElementById('playerNameInput');
             const btn = document.getElementById('startGameBtn');
@@ -73,6 +117,10 @@
                 } else {
                     window.currentPlayerName = name;
                     modal.style.display = 'none';
+                    
+                    // Załaduj historię dla nowego gracza
+                    loadUserHistory(window.currentPlayerName);
+                    loadTopPlayers();
                     
                     // Zaktualizuj tekst nazwy gracza w grze jeśli jest już dostępne
                     setTimeout(() => {

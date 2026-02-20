@@ -4,7 +4,12 @@ body {
     color: white;
     text-align: center;
     margin: 0;
-    padding: 20px 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 h1 {
@@ -16,8 +21,102 @@ h1 {
 }
 
 #game {
-    margin: auto;
     width: 800px;
+}
+
+/* Kontener gry i historii */
+#gameContainer {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    align-items: flex-start;
+    width: auto;
+}
+
+/* Panel historii gier */
+.history-panel {
+    width: 200px;
+    background-color: #2a2a2a;
+    border: 2px solid #444;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+.history-panel h3 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    color: #fff;
+    text-align: center;
+}
+
+/* Tabela historii */
+#gamesTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+    font-family: Georgia, serif;
+    font-weight: bold;
+}
+
+#gamesTable thead {
+    background-color: #333;
+}
+
+#gamesTable th {
+    padding: 8px 5px;
+    text-align: left;
+    color: #fff;
+    font-weight: bold;
+    border-bottom: 2px solid #444;
+}
+
+#gamesTable td {
+    padding: 8px 5px;
+    border-bottom: 1px solid #333;
+    color: #ccc;
+}
+
+#gamesTable tbody tr:hover {
+    background-color: #333;
+}
+
+#gamesTable tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Tabela statystyk (taka sama co historia) */
+#statsTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+    font-family: Georgia, serif;
+    font-weight: bold;
+}
+
+#statsTable thead {
+    background-color: #333;
+}
+
+#statsTable th {
+    padding: 8px 5px;
+    text-align: left;
+    color: #fff;
+    font-weight: bold;
+    border-bottom: 2px solid #444;
+}
+
+#statsTable td {
+    padding: 8px 5px;
+    border-bottom: 1px solid #333;
+    color: #ccc;
+}
+
+#statsTable tbody tr:hover {
+    background-color: #333;
+}
+
+#statsTable tbody tr:last-child td {
+    border-bottom: none;
 }
 
 /* Modal z pytaniem o nazwę gracza */

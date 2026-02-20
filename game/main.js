@@ -171,7 +171,7 @@ function resetGame() {
     childObjects.forEach(child => {
         if ((child instanceof Phaser.GameObjects.Text || child instanceof Phaser.GameObjects.Image) && 
             child !== ui.messageText && child !== ui.restartButton && child !== ui.knightTurnText && child !== ui.carTurnText &&
-            child !== ui.knightIcon && child !== ui.carIcon) {
+            child !== ui.knightIcon && child !== ui.carIcon && child !== ui.playerNameText && child !== ui.computerNameText) {
             child.destroy();
         }
     });
