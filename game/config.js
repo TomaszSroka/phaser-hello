@@ -29,19 +29,25 @@ const FONTS = {
         fontSize: 60,
         fontFamily: 'Georgia, serif',
         fontStyle: 'bold'
+    },
+    player_name: {
+        fontSize: 20,
+        fontFamily: 'Georgia, serif',
+        fill: '#ffffff',
+        fontStyle: 'bold'
     }
 };
 
 // Stałe gry
 const GAME_CONFIG = {
-    width: 600,
+    width: 800,
     height: 500,
     backgroundColor: '#444444'
 };
 
 const BOARD_CONFIG = {
     cellSize: 100,
-    offsetX: 129,
+    offsetX: 250,
     offsetY: 64
 };
 
@@ -69,12 +75,12 @@ const ASSETS = {
 
 // Konfiguracja pozycji elementów UI
 const UI_POSITIONS = {
-    knight_turn_text: { x: 35, y: 20 },
-    car_turn_text: { x: 565, y: 20 },
-    knight_icon: { x: 65, y: 214, scale: 0.24 },
-    car_icon: { x: 515, y: 214, scale: 0.105 },
-    message_text: { x: 279, y: 384 },
-    restart_button: { x: 279, y: 451 }
+    knight_turn_text: { x: 40, y: 20 },
+    car_turn_text: { x: 760, y: 20 },
+    knight_icon: { x: 125, y: 294, scale: 0.24 },
+    car_icon: { x: 675, y: 294, scale: 0.105 },
+    message_text: { x: 400, y: 384 },
+    restart_button: { x: 400, y: 451 }
 };
 
 // Konfiguracja tekstów gry

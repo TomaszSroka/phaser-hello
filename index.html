@@ -6,14 +6,88 @@
     <link rel="stylesheet" href="style.css">
     <!-- Phaser z CDN -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <!-- Supabase z CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <h1>Kółko i Krzyżyk</h1>
+    
+    <!-- Modal z pytaniem o nazwę gracza -->
+    <div id="playerNameModal" class="modal">
+        <div class="modal-content">
+            <p>Wpisz nazwę gracza:</p>
+            <input type="text" id="playerNameInput" placeholder="Twoja nazwa..." maxlength="15" />
+            <p id="charCountWarning" style="color: #888; font-size: 14px; margin: 10px 0; height: 20px;"></p>
+            <button id="startGameBtn">Rozpocznij grę</button>
+        </div>
+    </div>
+    
     <div id="game"></div>
 
-    <script src="src/game_config.js"></script>
-    <script src="src/game_logic.js"></script>
-    <script src="src/game_ui.js"></script>
-    <script src="src/game_main.js"></script>
+    <script src="game/config.js"></script>
+    <script src="game/logic.js"></script>
+    <script src="game/ui.js"></script>
+    <script src="integrations/config.js"></script>
+    <script src="integrations/database.js"></script>
+    <script src="game/main.js"></script>
+    
+    <script>
+        // Zmienna globalna z nazwą gracza
+        window.currentPlayerName = '';
+        
+        // Obsługa modala z nazwą gracza
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('playerNameModal');
+            const input = document.getElementById('playerNameInput');
+            const btn = document.getElementById('startGameBtn');
+            const warning = document.getElementById('charCountWarning');
+            
+            // Wyczyść pole na starcie
+            input.value = '';
+            
+            // Pokaż modal
+            modal.style.display = 'flex';
+            
+            // Ustaw focus PO wyświetleniu modala (z małym opóźnieniem żeby zadziałało)
+            setTimeout(() => {
+                input.focus();
+            }, 50);
+            
+            // Monitor liczby znaków
+            input.addEventListener('input', () => {
+                const length = input.value.length;
+                if (length > 0) {
+                    warning.textContent = length + '/15';
+                } else {
+                    warning.textContent = '';
+                }
+            });
+            
+            // Rozpocznij grę po kliknięciu przycisku
+            const startGame = () => {
+                const name = input.value.trim();
+                if (name.length === 0) {
+                    alert('Proszę wpisać nazwę gracza!');
+                } else if (name.length > 15) {
+                    alert('Nazwa gracza nie może przekraczać 15 znaków!');
+                } else {
+                    window.currentPlayerName = name;
+                    modal.style.display = 'none';
+                    
+                    // Zaktualizuj tekst nazwy gracza w grze jeśli jest już dostępne
+                    setTimeout(() => {
+                        if (window.ui && window.ui.playerNameText) {
+                            window.ui.playerNameText.setText(window.currentPlayerName);
+                        }
+                    }, 100);
+                }
+            };
+            
+            btn.addEventListener('click', startGame);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') startGame();
+            });
+        });
+    </script>
 </body>
 </html>

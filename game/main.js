@@ -89,6 +89,10 @@ function create() {
                     gameWinner = currentPlayer;
                     updateGameMessage(ui, gameWinner);
                     showRestartButton(ui);
+                    
+                    // Zapisz wynik do bazy
+                    saveGameResult(gameWinner === 1 ? 'gracz' : 'komputer');
+                    
                     return;
                 }
 
@@ -98,6 +102,10 @@ function create() {
                     gameWinner = 'draw';
                     updateGameMessage(ui, gameWinner);
                     showRestartButton(ui);
+                    
+                    // Zapisz wynik do bazy
+                    saveGameResult('remis');
+                    
                     return;
                 }
 
@@ -112,6 +120,14 @@ function create() {
 
     // Tworzymy elementy UI
     ui = createUIElements(this);
+    
+    // Zaktualizuj nazwę gracza z wartości zapisanej w modalui
+    if (ui.playerNameText && window.currentPlayerName) {
+        ui.playerNameText.setText(window.currentPlayerName);
+    }
+    
+    // Udostępnij ui globalnie
+    window.ui = ui;
 
     // Obsługa kliknięcia przycisku
     ui.restartButton.on('pointerdown', () => {

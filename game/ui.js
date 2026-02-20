@@ -26,12 +26,22 @@ function createUIElements(scene) {
     ui.knightIcon = scene.add.image(knightIconPos.x, knightIconPos.y, 'knight-player');
     ui.knightIcon.setScale(knightIconPos.scale);
     ui.knightIcon.setDepth(100);
+    
+    // Nazwa gracza poniżej ikony rycerza
+    ui.playerNameText = scene.add.text(knightIconPos.x, knightIconPos.y + 70, window.currentPlayerName || 'Gracz', FONTS.player_name);
+    ui.playerNameText.setOrigin(0.5, 0);
+    ui.playerNameText.setDepth(100);
 
     // Ikona computera (samochodzik) po prawej stronie
     const carIconPos = UI_POSITIONS.car_icon;
     ui.carIcon = scene.add.image(carIconPos.x, carIconPos.y, 'car-computer');
     ui.carIcon.setScale(carIconPos.scale);
     ui.carIcon.setDepth(100);
+    
+    // Napis "Komputer" poniżej ikony samochodu
+    ui.computerNameText = scene.add.text(carIconPos.x, carIconPos.y + 70, 'Komputer', FONTS.player_name);
+    ui.computerNameText.setOrigin(0.5, 0);
+    ui.computerNameText.setDepth(100);
 
     // Tekst wiadomości poniżej planszy
     const messagePos = UI_POSITIONS.message_text;
