@@ -28,8 +28,8 @@ function createUIElements(scene) {
     ui.knightIcon.setDepth(100);
     
     // Nazwa gracza poniżej ikony rycerza
-    ui.playerNameText = scene.add.text(knightIconPos.x, knightIconPos.y + 70, window.currentPlayerName || 'Gracz', FONTS.player_name);
-    ui.playerNameText.setOrigin(0.5, 0);
+    ui.playerNameText = scene.add.text(knightIconPos.x, knightIconPos.y + 85, window.currentPlayerName || 'Gracz', FONTS.player_name);
+    ui.playerNameText.setOrigin(0.5, 1);
     ui.playerNameText.setDepth(100);
 
     // Ikona computera (samochodzik) po prawej stronie
@@ -40,7 +40,7 @@ function createUIElements(scene) {
     
     // Napis "Komputer" poniżej ikony samochodu
     ui.computerNameText = scene.add.text(carIconPos.x, carIconPos.y + 70, 'Komputer', FONTS.player_name);
-    ui.computerNameText.setOrigin(0.5, 0);
+    ui.computerNameText.setOrigin(0.5, 1);
     ui.computerNameText.setDepth(100);
 
     // Tekst wiadomości poniżej planszy

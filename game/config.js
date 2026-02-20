@@ -77,7 +77,7 @@ const ASSETS = {
 const UI_POSITIONS = {
     knight_turn_text: { x: 40, y: 20 },
     car_turn_text: { x: 760, y: 20 },
-    knight_icon: { x: 125, y: 294, scale: 0.24 },
+    knight_icon: { x: 125, y: 279, scale: 0.24 },
     car_icon: { x: 675, y: 294, scale: 0.105 },
     message_text: { x: 400, y: 384 },
     restart_button: { x: 400, y: 451 }
