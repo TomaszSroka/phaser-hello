@@ -5,21 +5,31 @@ const supabaseClient = supabase.createClient(DATABASE_CONFIG.url, DATABASE_CONFI
 
 /**
  * Zapisuje wynik gry do bazy danych
- * @param {string} gameResult - Wynik gry (komunikat końcowy)
+ * @param {string} result - Wynik gry (komunikat końcowy)
  * @returns {Promise<object>} Odpowiedź z bazy danych
  */
-async function saveGameResult(gameResult) {
+async function saveGameResult(result) {
     try {
         const playerName = window.currentPlayerName || 'Anonim';
-        
+        if (!isValidresult(result)) {
+            const error = new Error(`Nieprawidłowy wynik gry: ${result}`);
+            console.error('Błąd zapisu do Supabase:', error);
+            return { success: false, error };
+        }
+
+        const movesCount = getMovesCount();
+        const finalBoard = getFinalBoardState();
+
         const { data, error } = await supabaseClient
             .schema('ttt')
-            .from('games_history')
+            .from('games')
             .insert([
                 {
-                    player_name: playerName,
-                    game_result: gameResult,
-                    created_at: new Date().toISOString()
+                    player_x: playerName,
+                    player_o: 'komputer',
+                    result: result,
+                    moves_count: movesCount,
+                    final_board: finalBoard
                 }
             ])
             .select();
@@ -37,6 +47,30 @@ async function saveGameResult(gameResult) {
         console.error('Błąd podczas zapisu:', err);
         return { success: false, error: err };
     }
+}
+
+function isValidresult(result) {
+    return result === 'gracz' || result === 'komputer' || result === 'remis';
+}
+
+function getMovesCount() {
+    if (typeof board === 'undefined' || !Array.isArray(board)) {
+        return 0;
+    }
+
+    return board.filter(cell => cell !== 0).length;
+}
+
+function getFinalBoardState() {
+    if (typeof board === 'undefined' || !Array.isArray(board) || board.length !== 9) {
+        return null;
+    }
+
+    return board.map(cell => {
+        if (cell === 1) return 'X';
+        if (cell === 2) return 'O';
+        return '_';
+    }).join('');
 }
 
 /**
@@ -104,9 +138,10 @@ function displayUserHistory(games) {
     
     tbody.innerHTML = games.map(game => {
         const date = new Date(game.created_at).toLocaleDateString('pl-PL');
+        const result = game.game_result ?? game.result;
         return `
             <tr>
-                <td>${game.game_result}</td>
+                <td>${result}</td>
                 <td>${date}</td>
             </tr>
         `;
@@ -127,10 +162,12 @@ function displayTopPlayers(topPlayers) {
         return;
     }
     
-    tbody.innerHTML = topPlayers.map(player => `
+    tbody.innerHTML = topPlayers.map(player => {
+        return `
         <tr>
             <td>${player.player_name}</td>
             <td>${player.wins}</td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
