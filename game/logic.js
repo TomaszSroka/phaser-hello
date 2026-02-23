@@ -13,6 +13,20 @@ function checkWin(board, player) {
 }
 
 /**
+ * Zwraca zwycięską kombinację pól dla danego gracza
+ * @param {number[]} board - Tablica reprezentująca stan planszy
+ * @param {number} player - ID gracza (1 lub 2)
+ * @returns {number[]|null} Zwycięska kombinacja lub null
+ */
+function getWinningCombination(board, player) {
+    const combo = GAME_RULES.winning_combinations.find(currentCombo => {
+        return currentCombo.every(index => board[index] === player);
+    });
+
+    return combo || null;
+}
+
+/**
  * Sprawdza czy gra skończyła się remisem
  * @param {number[]} board - Tablica reprezentująca stan planszy
  * @returns {boolean} True jeśli wszystkie pola są zajęte
@@ -170,27 +184,27 @@ function getBestMoves(boardState, maxDepth) {
 /**
  * Wyznacza najlepszy ruch dla komputera zależnie od poziomu trudności
  * @param {number[]} boardState - Aktualny stan planszy
- * @param {string} difficulty - Poziom trudności: easy | medium | hard
+ * @param {string} difficulty - Poziom trudności: łatwy | średni | trudny
  * @returns {number|null} Indeks wybranego pola lub null
  */
 function getComputerMove(boardState, difficulty) {
-    if (difficulty === 'easy') {
+    if (difficulty === 'łatwy') {
         return getRandomMove(boardState);
     }
 
-    const maxDepth = difficulty === 'medium' ? 1 : Infinity;
+    const maxDepth = difficulty === 'średni' ? 1 : Infinity;
     const { availableMoves, bestMoves } = getBestMoves(boardState, maxDepth);
 
     if (availableMoves.length === 0) {
         return null;
     }
 
-    if (difficulty === 'hard' && shouldUseHardModeMistake()) {
+    if (difficulty === 'trudny' && shouldUseTrudnyModeMistake()) {
         const nonBestMoves = availableMoves.filter(move => !bestMoves.includes(move));
         const mistakeMove = getRandomMoveFromList(nonBestMoves);
 
         if (mistakeMove !== null) {
-            window.hardModeMistakeUsed = true;
+            window.trudnyModeMistakeUsed = true;
             return mistakeMove;
         }
     }
@@ -198,6 +212,6 @@ function getComputerMove(boardState, difficulty) {
     return getRandomMoveFromList(bestMoves) ?? availableMoves[0];
 }
 
-function shouldUseHardModeMistake() {
-    return Boolean(window.hardModeMistakeEligible) && !window.hardModeMistakeUsed;
+function shouldUseTrudnyModeMistake() {
+    return Boolean(window.trudnyModeMistakeEligible) && !window.trudnyModeMistakeUsed;
 }

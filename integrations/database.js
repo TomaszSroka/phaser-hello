@@ -12,6 +12,7 @@ async function saveGameResult(result) {
     try {
         const playerName = window.currentPlayerName || 'Anonim';
         const difficulty = getCurrentDifficultyValue();
+        const startingPlayer = getCurrentStartingPlayerValue();
         if (!isValidresult(result)) {
             const error = new Error(`Nieprawidłowy wynik gry: ${result}`);
             console.error('Błąd zapisu do Supabase:', error);
@@ -21,20 +22,17 @@ async function saveGameResult(result) {
         const movesCount = getMovesCount();
         const finalBoard = getFinalBoardState();
 
-        const { data, error } = await supabaseClient
-            .schema('ttt')
-            .from('games')
-            .insert([
-                {
-                    player_x: playerName,
-                    player_o: 'komputer',
-                    difficulty: difficulty,
-                    result: result,
-                    moves_count: movesCount,
-                    final_board: finalBoard
-                }
-            ])
-            .select();
+        const gamePayload = {
+            player_x: playerName,
+            player_o: 'komputer',
+            difficulty: difficulty,
+            starting_player: startingPlayer,
+            result: result,
+            moves_count: movesCount,
+            final_board: finalBoard
+        };
+
+        const { data, error } = await insertGameRecordWithFallback(gamePayload);
 
         if (error) {
             console.error('Błąd zapisu do Supabase:', error);
@@ -51,16 +49,62 @@ async function saveGameResult(result) {
     }
 }
 
+async function insertGameRecordWithFallback(gamePayload) {
+    const firstTry = await insertGameRecord(gamePayload);
+    if (!firstTry.error) {
+        return firstTry;
+    }
+
+    if (!isMissingColumnError(firstTry.error, 'starting_player')) {
+        return firstTry;
+    }
+
+    console.warn('Kolumna starting_player niedostępna - zapis bez tej kolumny.');
+    const fallbackPayload = { ...gamePayload };
+    delete fallbackPayload.starting_player;
+    return insertGameRecord(fallbackPayload);
+}
+
+async function insertGameRecord(payload) {
+    return supabaseClient
+        .schema('ttt')
+        .from('games')
+        .insert([payload])
+        .select();
+}
+
+function isMissingColumnError(error, columnName) {
+    if (!error) {
+        return false;
+    }
+
+    const code = error.code || '';
+    const message = (error.message || '').toLowerCase();
+    const details = (error.details || '').toLowerCase();
+    const hint = (error.hint || '').toLowerCase();
+    const marker = columnName.toLowerCase();
+
+    if (code === 'PGRST204' || code === '42703') {
+        return true;
+    }
+
+    return message.includes(marker) || details.includes(marker) || hint.includes(marker);
+}
+
 function isValidresult(result) {
     return result === 'gracz' || result === 'komputer' || result === 'remis';
 }
 
 function getCurrentDifficultyValue() {
     const difficulty = window.currentDifficulty;
-    if (difficulty === 'medium' || difficulty === 'hard') {
+    if (difficulty === 'średni' || difficulty === 'trudny') {
         return difficulty;
     }
-    return 'easy';
+    return 'łatwy';
+}
+
+function getCurrentStartingPlayerValue() {
+    return window.currentStartingPlayer === 'komputer' ? 'komputer' : 'gracz';
 }
 
 function getMovesCount() {

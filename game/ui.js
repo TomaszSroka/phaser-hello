@@ -60,10 +60,10 @@ function createUIElements(scene) {
 
 function getDifficultyLabel() {
     const difficulty = window.currentDifficulty;
-    if (difficulty === 'hard') {
+    if (difficulty === 'trudny') {
         return 'Trudny';
     }
-    if (difficulty === 'medium') {
+    if (difficulty === 'średni') {
         return 'Średni';
     }
     return 'Łatwy';

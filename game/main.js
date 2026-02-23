@@ -22,8 +22,10 @@ let gameWinner = null; // 1 = X wygrał, 2 = O wygrał, 'draw' = remis
 let cells = [];
 let ui = {}; // Referencje do elementów UI
 let gameScene = null; // Referencja do sceny
+let winLineGraphics = null;
 const HUMAN_PLAYER = 1;
 const COMPUTER_PLAYER = 2;
+let nextStartingPlayer = HUMAN_PLAYER;
 
 const CELL_SIZE = BOARD_CONFIG.cellSize;
 const BOARD_OFFSET_X = BOARD_CONFIG.offsetX;
@@ -40,7 +42,8 @@ function preload() {
 // --- CREATE ---
 function create() {
     gameScene = this;
-    initializeHardModeMistakeState();
+    initializeTrudnyModeMistakeState();
+    applyStartingPlayerForNewGame();
 
     // Rysujemy planszę 3x3
     for (let i = 0; i < 9; i++) {
@@ -131,6 +134,10 @@ function create() {
 
     // Pokazujemy początkowy tekst turowy
     updateTurnDisplay(ui, currentPlayer);
+
+    if (currentPlayer === COMPUTER_PLAYER) {
+        makeComputerMove();
+    }
 }
 
 // --- UPDATE ---
@@ -140,16 +147,18 @@ function update() {
 
 function getCurrentDifficulty() {
     const difficulty = window.currentDifficulty;
-    if (difficulty === 'medium' || difficulty === 'hard') {
+    if (difficulty === 'średni' || difficulty === 'trudny') {
         return difficulty;
     }
-    return 'easy';
+    return 'łatwy';
 }
 
 function handleMoveResult() {
     if (checkWin(board, currentPlayer)) {
         gameWon = true;
         gameWinner = currentPlayer;
+        const winningCombo = getWinningCombination(board, currentPlayer);
+        drawWinningLine(winningCombo);
         updateGameMessage(ui, gameWinner);
         showRestartButton(ui);
 
@@ -201,10 +210,12 @@ function drawSymbol(cellIndex) {
 
 function resetGame() {
     board = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-    currentPlayer = HUMAN_PLAYER;
+    applyStartingPlayerForNewGame();
     gameWon = false;
     gameWinner = null;
-    initializeHardModeMistakeState();
+    initializeTrudnyModeMistakeState();
+
+    clearWinningLine();
 
     // Usuwamy stare symbole
     const childObjects = gameScene.children.list.slice();
@@ -223,9 +234,46 @@ function resetGame() {
 
     // Resetujemy UI
     resetUIForNewGame(ui);
+    updateTurnDisplay(ui, currentPlayer);
+
+    if (currentPlayer === COMPUTER_PLAYER) {
+        makeComputerMove();
+    }
 }
 
-function initializeHardModeMistakeState() {
-    window.hardModeMistakeEligible = Math.random() < 0.5;
-    window.hardModeMistakeUsed = false;
+function initializeTrudnyModeMistakeState() {
+    window.trudnyModeMistakeEligible = Math.random() < 0.5;
+    window.trudnyModeMistakeUsed = false;
+}
+
+function applyStartingPlayerForNewGame() {
+    currentPlayer = nextStartingPlayer;
+    window.currentStartingPlayer = currentPlayer === HUMAN_PLAYER ? 'gracz' : 'komputer';
+    nextStartingPlayer = switchPlayer(nextStartingPlayer);
+}
+
+function drawWinningLine(winningCombo) {
+    if (!winningCombo || winningCombo.length !== 3) {
+        return;
+    }
+
+    clearWinningLine();
+
+    const startPos = calculateSymbolPosition(winningCombo[0]);
+    const endPos = calculateSymbolPosition(winningCombo[2]);
+
+    winLineGraphics = gameScene.add.graphics();
+    winLineGraphics.lineStyle(8, 0xffff00, 1);
+    winLineGraphics.beginPath();
+    winLineGraphics.moveTo(startPos.x, startPos.y);
+    winLineGraphics.lineTo(endPos.x, endPos.y);
+    winLineGraphics.strokePath();
+    winLineGraphics.setDepth(150);
+}
+
+function clearWinningLine() {
+    if (winLineGraphics) {
+        winLineGraphics.destroy();
+        winLineGraphics = null;
+    }
 }
