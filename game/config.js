@@ -37,7 +37,7 @@ const FONTS = {
         fontStyle: 'bold'
     },
     computer_speech: {
-        fontSize: 16,
+        fontSize: 20,
         fontFamily: 'Georgia, serif',
         fill: '#ffffff',
         align: 'center',

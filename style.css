@@ -53,7 +53,7 @@ h1 {
 #gamesTable {
     width: 100%;
     border-collapse: collapse;
-    font-size: 15px;
+    font-size: 16px;
     font-family: Georgia, serif;
     font-weight: bold;
 }
@@ -88,7 +88,7 @@ h1 {
 #statsTable {
     width: 100%;
     border-collapse: collapse;
-    font-size: 15px;
+    font-size: 16px;
     font-family: Georgia, serif;
     font-weight: bold;
 }
