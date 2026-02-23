@@ -17,6 +17,12 @@
         <div class="modal-content">
             <p>Wpisz nazwę gracza:</p>
             <input type="text" id="playerNameInput" placeholder="Twoja nazwa..." maxlength="15" />
+            <p>Wybierz poziom trudności:</p>
+            <select id="difficultySelect">
+                <option value="easy">Łatwy</option>
+                <option value="medium">Średni</option>
+                <option value="hard">Trudny</option>
+            </select>
             <p id="charCountWarning" style="color: #888; font-size: 14px; margin: 10px 0; height: 20px;"></p>
             <button id="startGameBtn">Rozpocznij grę</button>
         </div>
@@ -74,6 +80,7 @@
     <script>
         // Zmienna globalna z nazwą gracza
         window.currentPlayerName = 'Anonim';
+        window.currentDifficulty = 'easy';
         
         // Obsługa modala z nazwą gracza
         document.addEventListener('DOMContentLoaded', () => {
@@ -83,11 +90,19 @@
             // Obsługa modala z nazwą gracza
             const modal = document.getElementById('playerNameModal');
             const input = document.getElementById('playerNameInput');
+            const difficultySelect = document.getElementById('difficultySelect');
             const btn = document.getElementById('startGameBtn');
             const warning = document.getElementById('charCountWarning');
+
+            const updateStartButtonState = () => {
+                const trimmedName = input.value.trim();
+                btn.disabled = trimmedName.length === 0;
+            };
             
             // Wyczyść pole na starcie
             input.value = '';
+            difficultySelect.value = 'easy';
+            updateStartButtonState();
             
             // Pokaż modal
             modal.style.display = 'flex';
@@ -105,6 +120,7 @@
                 } else {
                     warning.textContent = '';
                 }
+                updateStartButtonState();
             });
             
             // Rozpocznij grę po kliknięciu przycisku
@@ -116,6 +132,7 @@
                     alert('Nazwa gracza nie może przekraczać 15 znaków!');
                 } else {
                     window.currentPlayerName = name;
+                    window.currentDifficulty = difficultySelect.value;
                     modal.style.display = 'none';
                     
                     // Załaduj historię dla nowego gracza
@@ -126,6 +143,9 @@
                     setTimeout(() => {
                         if (window.ui && window.ui.playerNameText) {
                             window.ui.playerNameText.setText(window.currentPlayerName);
+                        }
+                        if (window.ui && window.ui.computerNameText) {
+                            updateComputerDifficultyLabel(window.ui);
                         }
                     }, 100);
                 }

@@ -39,7 +39,7 @@ function createUIElements(scene) {
     ui.carIcon.setDepth(100);
     
     // Napis "Komputer" poniżej ikony samochodu
-    ui.computerNameText = scene.add.text(carIconPos.x, carIconPos.y + 70, 'Komputer', FONTS.player_name);
+    ui.computerNameText = scene.add.text(carIconPos.x, carIconPos.y + 70, getComputerLabelWithDifficulty(), FONTS.player_name);
     ui.computerNameText.setOrigin(0.5, 1);
     ui.computerNameText.setDepth(100);
 
@@ -56,6 +56,29 @@ function createUIElements(scene) {
     ui.restartButton.setVisible(false);
 
     return ui;
+}
+
+function getDifficultyLabel() {
+    const difficulty = window.currentDifficulty;
+    if (difficulty === 'hard') {
+        return 'Trudny';
+    }
+    if (difficulty === 'medium') {
+        return 'Średni';
+    }
+    return 'Łatwy';
+}
+
+function getComputerLabelWithDifficulty() {
+    return `Komputer (${getDifficultyLabel()})`;
+}
+
+function updateComputerDifficultyLabel(ui) {
+    if (!ui || !ui.computerNameText) {
+        return;
+    }
+
+    ui.computerNameText.setText(getComputerLabelWithDifficulty());
 }
 
 /**

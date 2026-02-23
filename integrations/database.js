@@ -11,6 +11,7 @@ const supabaseClient = supabase.createClient(DATABASE_CONFIG.url, DATABASE_CONFI
 async function saveGameResult(result) {
     try {
         const playerName = window.currentPlayerName || 'Anonim';
+        const difficulty = getCurrentDifficultyValue();
         if (!isValidresult(result)) {
             const error = new Error(`Nieprawidłowy wynik gry: ${result}`);
             console.error('Błąd zapisu do Supabase:', error);
@@ -27,6 +28,7 @@ async function saveGameResult(result) {
                 {
                     player_x: playerName,
                     player_o: 'komputer',
+                    difficulty: difficulty,
                     result: result,
                     moves_count: movesCount,
                     final_board: finalBoard
@@ -51,6 +53,14 @@ async function saveGameResult(result) {
 
 function isValidresult(result) {
     return result === 'gracz' || result === 'komputer' || result === 'remis';
+}
+
+function getCurrentDifficultyValue() {
+    const difficulty = window.currentDifficulty;
+    if (difficulty === 'medium' || difficulty === 'hard') {
+        return difficulty;
+    }
+    return 'easy';
 }
 
 function getMovesCount() {

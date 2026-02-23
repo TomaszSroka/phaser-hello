@@ -164,7 +164,27 @@ h1 {
     letter-spacing: 1px;
 }
 
+.modal-content select {
+    font-family: Georgia, serif;
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    border: 2px solid #555;
+    border-radius: 4px;
+    background-color: #2a2a2a;
+    color: white;
+    box-sizing: border-box;
+    margin-bottom: 25px;
+    letter-spacing: 1px;
+}
+
 .modal-content input:focus {
+    outline: none;
+    border-color: #777;
+    background-color: #333;
+}
+
+.modal-content select:focus {
     outline: none;
     border-color: #777;
     background-color: #333;
@@ -191,4 +211,12 @@ h1 {
 .modal-content button:active {
     background-color: #333;
     transform: scale(0.98);
+}
+
+.modal-content button:disabled {
+    background-color: #2f2f2f;
+    border-color: #4a4a4a;
+    color: #999;
+    cursor: not-allowed;
+    transform: none;
 }

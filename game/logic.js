@@ -54,3 +54,150 @@ function calculateSymbolPosition(cellIndex) {
         y: BOARD_CONFIG.offsetY + row * BOARD_CONFIG.cellSize + BOARD_CONFIG.cellSize / 2
     };
 }
+
+/**
+ * Zwraca dostępne ruchy na planszy
+ * @param {number[]} boardState - Aktualny stan planszy
+ * @returns {number[]} Lista indeksów pustych pól
+ */
+function getAvailableMoves(boardState) {
+    const moves = [];
+    for (let i = 0; i < boardState.length; i++) {
+        if (boardState[i] === 0) {
+            moves.push(i);
+        }
+    }
+    return moves;
+}
+
+/**
+ * Zwraca losowy ruch z dostępnych pól
+ * @param {number[]} boardState - Aktualny stan planszy
+ * @returns {number|null} Indeks pola lub null
+ */
+function getRandomMove(boardState) {
+    const availableMoves = getAvailableMoves(boardState);
+    if (availableMoves.length === 0) {
+        return null;
+    }
+
+    const randomIndex = Math.floor(Math.random() * availableMoves.length);
+    return availableMoves[randomIndex];
+}
+
+function getRandomMoveFromList(moves) {
+    if (!moves || moves.length === 0) {
+        return null;
+    }
+
+    const randomIndex = Math.floor(Math.random() * moves.length);
+    return moves[randomIndex];
+}
+
+/**
+ * MiniMax - zwraca ocenę pozycji
+ * @param {number[]} boardState - Aktualny stan planszy
+ * @param {number} depth - Obecna głębokość
+ * @param {boolean} isMaximizing - Czy ruch wykonuje komputer
+ * @param {number} maxDepth - Maksymalna głębokość (Infinity dla pełnej)
+ * @returns {number} Ocena pozycji
+ */
+function minimax(boardState, depth, isMaximizing, maxDepth) {
+    if (checkWin(boardState, 2)) {
+        return 10 - depth;
+    }
+
+    if (checkWin(boardState, 1)) {
+        return depth - 10;
+    }
+
+    if (checkDraw(boardState)) {
+        return 0;
+    }
+
+    if (depth >= maxDepth) {
+        return 0;
+    }
+
+    const availableMoves = getAvailableMoves(boardState);
+
+    if (isMaximizing) {
+        let bestScore = -Infinity;
+        for (const move of availableMoves) {
+            boardState[move] = 2;
+            const score = minimax(boardState, depth + 1, false, maxDepth);
+            boardState[move] = 0;
+            if (score > bestScore) {
+                bestScore = score;
+            }
+        }
+        return bestScore;
+    }
+
+    let bestScore = Infinity;
+    for (const move of availableMoves) {
+        boardState[move] = 1;
+        const score = minimax(boardState, depth + 1, true, maxDepth);
+        boardState[move] = 0;
+        if (score < bestScore) {
+            bestScore = score;
+        }
+    }
+    return bestScore;
+}
+
+function getBestMoves(boardState, maxDepth) {
+    const availableMoves = getAvailableMoves(boardState);
+    let bestScore = -Infinity;
+    let bestMoves = [];
+
+    for (const move of availableMoves) {
+        boardState[move] = 2;
+        const score = minimax(boardState, 0, false, maxDepth);
+        boardState[move] = 0;
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestMoves = [move];
+        } else if (score === bestScore) {
+            bestMoves.push(move);
+        }
+    }
+
+    return { availableMoves, bestMoves };
+}
+
+/**
+ * Wyznacza najlepszy ruch dla komputera zależnie od poziomu trudności
+ * @param {number[]} boardState - Aktualny stan planszy
+ * @param {string} difficulty - Poziom trudności: easy | medium | hard
+ * @returns {number|null} Indeks wybranego pola lub null
+ */
+function getComputerMove(boardState, difficulty) {
+    if (difficulty === 'easy') {
+        return getRandomMove(boardState);
+    }
+
+    const maxDepth = difficulty === 'medium' ? 1 : Infinity;
+    const { availableMoves, bestMoves } = getBestMoves(boardState, maxDepth);
+
+    if (availableMoves.length === 0) {
+        return null;
+    }
+
+    if (difficulty === 'hard' && shouldUseHardModeMistake()) {
+        const nonBestMoves = availableMoves.filter(move => !bestMoves.includes(move));
+        const mistakeMove = getRandomMoveFromList(nonBestMoves);
+
+        if (mistakeMove !== null) {
+            window.hardModeMistakeUsed = true;
+            return mistakeMove;
+        }
+    }
+
+    return getRandomMoveFromList(bestMoves) ?? availableMoves[0];
+}
+
+function shouldUseHardModeMistake() {
+    return Boolean(window.hardModeMistakeEligible) && !window.hardModeMistakeUsed;
+}

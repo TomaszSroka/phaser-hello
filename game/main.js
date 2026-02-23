@@ -22,6 +22,8 @@ let gameWinner = null; // 1 = X wygrał, 2 = O wygrał, 'draw' = remis
 let cells = [];
 let ui = {}; // Referencje do elementów UI
 let gameScene = null; // Referencja do sceny
+const HUMAN_PLAYER = 1;
+const COMPUTER_PLAYER = 2;
 
 const CELL_SIZE = BOARD_CONFIG.cellSize;
 const BOARD_OFFSET_X = BOARD_CONFIG.offsetX;
@@ -38,6 +40,7 @@ function preload() {
 // --- CREATE ---
 function create() {
     gameScene = this;
+    initializeHardModeMistakeState();
 
     // Rysujemy planszę 3x3
     for (let i = 0; i < 9; i++) {
@@ -62,6 +65,10 @@ function create() {
                 return;
             }
 
+            if (currentPlayer !== HUMAN_PLAYER) {
+                return;
+            }
+
             // Jeśli pole jest już zajęte, nic nie robimy
             if (board[cell.cellIndex] !== 0) {
                 return;
@@ -83,35 +90,14 @@ function create() {
                 // Rysujemy X lub O
                 drawSymbol.call(this, cell.cellIndex);
 
-                // Sprawdzamy zwycięstwo
-                if (checkWin(board, currentPlayer)) {
-                    gameWon = true;
-                    gameWinner = currentPlayer;
-                    updateGameMessage(ui, gameWinner);
-                    showRestartButton(ui);
-                    
-                    // Zapisz wynik do bazy
-                    saveGameResult(gameWinner === 1 ? 'gracz' : 'komputer');
-                    
-                    return;
-                }
+                if (!handleMoveResult()) {
+                    currentPlayer = switchPlayer(currentPlayer);
+                    updateTurnDisplay(ui, currentPlayer);
 
-                // Sprawdzamy remis
-                if (checkDraw(board)) {
-                    gameWon = true;
-                    gameWinner = 'draw';
-                    updateGameMessage(ui, gameWinner);
-                    showRestartButton(ui);
-                    
-                    // Zapisz wynik do bazy
-                    saveGameResult('remis');
-                    
-                    return;
+                    if (currentPlayer === COMPUTER_PLAYER) {
+                        makeComputerMove();
+                    }
                 }
-
-                // Zmieniamy gracza
-                currentPlayer = switchPlayer(currentPlayer);
-                updateTurnDisplay(ui, currentPlayer);
             }
         });
 
@@ -152,6 +138,59 @@ function update() {
     // Gra działa automatycznie na zdarzenia kliknięć
 }
 
+function getCurrentDifficulty() {
+    const difficulty = window.currentDifficulty;
+    if (difficulty === 'medium' || difficulty === 'hard') {
+        return difficulty;
+    }
+    return 'easy';
+}
+
+function handleMoveResult() {
+    if (checkWin(board, currentPlayer)) {
+        gameWon = true;
+        gameWinner = currentPlayer;
+        updateGameMessage(ui, gameWinner);
+        showRestartButton(ui);
+
+        saveGameResult(gameWinner === HUMAN_PLAYER ? 'gracz' : 'komputer');
+        return true;
+    }
+
+    if (checkDraw(board)) {
+        gameWon = true;
+        gameWinner = 'draw';
+        updateGameMessage(ui, gameWinner);
+        showRestartButton(ui);
+
+        saveGameResult('remis');
+        return true;
+    }
+
+    return false;
+}
+
+function makeComputerMove() {
+    gameScene.time.delayedCall(250, () => {
+        if (gameWon || currentPlayer !== COMPUTER_PLAYER) {
+            return;
+        }
+
+        const moveIndex = getComputerMove(board, getCurrentDifficulty());
+        if (moveIndex === null || board[moveIndex] !== 0) {
+            return;
+        }
+
+        board[moveIndex] = COMPUTER_PLAYER;
+        drawSymbol.call(gameScene, moveIndex);
+
+        if (!handleMoveResult()) {
+            currentPlayer = switchPlayer(currentPlayer);
+            updateTurnDisplay(ui, currentPlayer);
+        }
+    });
+}
+
 // Rysowanie symbolu X lub O
 function drawSymbol(cellIndex) {
     const pos = calculateSymbolPosition(cellIndex);
@@ -162,9 +201,10 @@ function drawSymbol(cellIndex) {
 
 function resetGame() {
     board = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-    currentPlayer = 1;
+    currentPlayer = HUMAN_PLAYER;
     gameWon = false;
     gameWinner = null;
+    initializeHardModeMistakeState();
 
     // Usuwamy stare symbole
     const childObjects = gameScene.children.list.slice();
@@ -183,4 +223,9 @@ function resetGame() {
 
     // Resetujemy UI
     resetUIForNewGame(ui);
+}
+
+function initializeHardModeMistakeState() {
+    window.hardModeMistakeEligible = Math.random() < 0.5;
+    window.hardModeMistakeUsed = false;
 }
