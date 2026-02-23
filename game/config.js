@@ -35,7 +35,161 @@ const FONTS = {
         fontFamily: 'Georgia, serif',
         fill: '#ffffff',
         fontStyle: 'bold'
+    },
+    computer_speech: {
+        fontSize: 16,
+        fontFamily: 'Georgia, serif',
+        fill: '#ffffff',
+        align: 'center',
+        wordWrap: { width: 165 }
     }
+};
+
+const DIFFICULTY_CONFIG = {
+    default: 'łatwy',
+    values: ['łatwy', 'średni', 'trudny'],
+    labels: {
+        'łatwy': 'Łatwy',
+        'średni': 'Średni',
+        'trudny': 'Trudny'
+    }
+};
+
+const PLAYER_IDS = {
+    human: 1,
+    computer: 2
+};
+
+const AI_CONFIG = {
+    medium_search_depth: 1,
+    medium_random_move_probability: 1 / 3,
+    speech_read_delay_ms: 2000,
+    hard_mode_mistake_probability: 0.5
+};
+
+const GAME_VISUAL_CONFIG = {
+    board_cell_fill: 0x444444,
+    board_cell_stroke: 0xffffff,
+    board_cell_stroke_width: 2,
+    symbol_scale: 0.7,
+    win_line_color: 0xffff00,
+    win_line_width: 8,
+    win_line_depth: 150
+};
+
+const COMPUTER_SPEECH_CONFIG = {
+    y_offset: -120,
+    width: 190,
+    height: 84,
+    background_color: 0x111111,
+    background_alpha: 0.92,
+    border_color: 0xffffff,
+    border_width: 2,
+    tail_offset_x: 5,
+    tail_offset_y: 48,
+    tail_points: { x1: -12, y1: 0, x2: 12, y2: 0, x3: 0, y3: 18 },
+    bubble_depth: 120,
+    text_depth: 121,
+    fallback_text: '...'
+};
+
+const COMPUTER_DIALOGS = {
+    start_player: [
+        'Zaczynaj, mistrzu dwukliku.',
+        'Pierwszy ruch Twój. Ja notuję.',
+        'No to dawaj, ja mam pasy zapięte.',
+        'Scena jest Twoja. Ja tylko trąbię.',
+        'Startuj śmiało, kierowco strategii.',
+        'Ty pierwszy, ja sekunduję z humorem.',
+        'Jedziemy! Ruch należy do Ciebie.',
+        'Masz pierwszy ruch, nie spal sprzęgła.',
+        'Dawaj krzyżyka, ja już patrzę.',
+        'Pierwszeństwo przejazdu dla Ciebie.'
+    ],
+    start_computer: [
+        'Zaczynam ja. Czas na rozgrzewkę.',
+        'Silnik odpalony. Pierwszy ruch mój.',
+        'Startuję! Nie mrugaj.',
+        'Pierwszy zakręt biorę ja.',
+        'Mój start. Będzie trochę kurzu.',
+        'Uwaga, komputer rusza z pola.',
+        'Kółko bierze pierwszy ruch, zapraszam.',
+        'Ja zaczynam. Ty szykuj kontrę.',
+        'Rozpędzam się. Pierwszy ruch mój.',
+        'Ruszam pierwszy, oby bez stłuczki.'
+    ],
+    computer_turn: [
+        'Moja tura. Proszę o ciszę na torze.',
+        'Chwila, liczę... i już jadę.',
+        'Kółko wjeżdża na planszę.',
+        'Teraz moja kolej na manewr.',
+        'Obliczenia skończone. Wjeżdżam.',
+        'Mój ruch. Trzymaj kierownicę prosto.',
+        'Kółko zgłasza gotowość do ruchu.',
+        'Włączam kierunkowskaz i gram.',
+        'Moja tura, bez paniki.',
+        'Ruszam. Oby bez korków.'
+    ],
+    player_turn: [
+        'Twoja kolej. Pokaż klasę.',
+        'Teraz Ty. Ja tylko lekko się śmieję.',
+        'Ruch gracza! Patrzę podejrzliwie.',
+        'Twoja tura, mistrzu taktyki.',
+        'Oddaję kierownicę. Twój manewr.',
+        'Ruch po Twojej stronie planszy.',
+        'Teraz Ty. Ja analizuję minę.',
+        'Jesteś na ruchu, nie naciskam.',
+        'Twoja kolej, pokaż co umiesz.',
+        'Twój ruch. Ja robię popcorn.'
+    ],
+    computer_blocked: [
+        'Stop! Tu był Twój plan, prawda?',
+        'Blokada założona. Remont strategii?',
+        'Ten skrót był zamknięty przeze mnie.',
+        'Tu postawiłem pachołki bezpieczeństwa.',
+        'Przejazd zamknięty. Objazd, proszę.',
+        'Ten ruch właśnie zneutralizowałem.',
+        'Blok! Kontrola trakcji działa.',
+        'Zakaz wjazdu na zwycięską linię.',
+        'A to Ci zablokowałem elegancko.',
+        'Plan A zablokowany, czas na B.'
+    ],
+    computer_win: [
+        'Bip-bip! Wygrana komputera.',
+        'Kółko melduje zwycięstwo.',
+        'GG! Dziś asfalt był po mojej stronie.',
+        'Meta moja. Dzięki za wyścig!',
+        'Wygrana! Silnik mruczy z radości.',
+        'Dziś komputer bierze puchar.',
+        'No i po sprawie. Punkt dla mnie.',
+        'Kółko triumfuje. Brawa dla obu stron.',
+        'To była dobra partia, ale moja.',
+        'Finisz! Wygrałem o pół maski.'
+    ],
+    player_win: [
+        'No dobra, tym razem mnie ograłeś.',
+        'Szacunek. To był dobry manewr.',
+        'Auć, pięknie to rozegrałeś.',
+        'Przyjmuję porażkę jak zawodowiec.',
+        'Trafiony, zatopiony. Dobra robota.',
+        'Masz to! Punkt dla Ciebie.',
+        'Wygrałeś. Ja idę kalibrować algorytm.',
+        'Dziś byłeś szybszy na zakrętach.',
+        'Elegancka wygrana, gratulacje.',
+        'No i pięknie. Rewanż?'
+    ],
+    draw: [
+        'Remis. Nikt nie stracił zderzaka.',
+        'Sprawiedliwie. Plansza bez zwycięzcy.',
+        'Remis! Rewanż?',
+        'Podział punktów. Bardzo sportowo.',
+        'Napięcie było, zwycięzcy brak.',
+        'Remis jak z podręcznika.',
+        'Żadnych ofiar, tylko remis.',
+        'Równo! Każdy zabiera punkt.',
+        'Bilans idealny: zero porażek, zero zwycięstw.',
+        'Remis. To była partia na żyletki.'
+    ]
 };
 
 // Stałe gry

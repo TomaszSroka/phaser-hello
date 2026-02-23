@@ -16,16 +16,14 @@ const game = new Phaser.Game(config);
 
 // Stan gry
 let board = [0, 0, 0, 0, 0, 0, 0, 0, 0]; // 0 = puste, 1 = X, 2 = O
-let currentPlayer = 1; // 1 = X, 2 = O
+let currentPlayer = PLAYER_IDS.human; // 1 = X, 2 = O
 let gameWon = false;
 let gameWinner = null; // 1 = X wygrał, 2 = O wygrał, 'draw' = remis
 let cells = [];
 let ui = {}; // Referencje do elementów UI
 let gameScene = null; // Referencja do sceny
 let winLineGraphics = null;
-const HUMAN_PLAYER = 1;
-const COMPUTER_PLAYER = 2;
-let nextStartingPlayer = HUMAN_PLAYER;
+let nextStartingPlayer = PLAYER_IDS.human;
 
 const CELL_SIZE = BOARD_CONFIG.cellSize;
 const BOARD_OFFSET_X = BOARD_CONFIG.offsetX;
@@ -53,8 +51,8 @@ function create() {
         const y = BOARD_OFFSET_Y + row * CELL_SIZE + CELL_SIZE / 2;
 
         // Tworzymy komórkę
-        const cell = this.add.rectangle(x, y, CELL_SIZE, CELL_SIZE, 0x444444);
-        cell.setStrokeStyle(2, 0xffffff);
+        const cell = this.add.rectangle(x, y, CELL_SIZE, CELL_SIZE, GAME_VISUAL_CONFIG.board_cell_fill);
+        cell.setStrokeStyle(GAME_VISUAL_CONFIG.board_cell_stroke_width, GAME_VISUAL_CONFIG.board_cell_stroke);
         cell.setInteractive();
         cell.cellIndex = i;
 
@@ -68,7 +66,7 @@ function create() {
                 return;
             }
 
-            if (currentPlayer !== HUMAN_PLAYER) {
+            if (currentPlayer !== PLAYER_IDS.human) {
                 return;
             }
 
@@ -97,7 +95,8 @@ function create() {
                     currentPlayer = switchPlayer(currentPlayer);
                     updateTurnDisplay(ui, currentPlayer);
 
-                    if (currentPlayer === COMPUTER_PLAYER) {
+                    if (currentPlayer === PLAYER_IDS.computer) {
+                        speakComputer(ui, 'computer_turn');
                         makeComputerMove();
                     }
                 }
@@ -135,8 +134,11 @@ function create() {
     // Pokazujemy początkowy tekst turowy
     updateTurnDisplay(ui, currentPlayer);
 
-    if (currentPlayer === COMPUTER_PLAYER) {
+    if (currentPlayer === PLAYER_IDS.computer) {
+        speakComputer(ui, 'start_computer');
         makeComputerMove();
+    } else {
+        speakComputer(ui, 'start_player');
     }
 }
 
@@ -147,10 +149,10 @@ function update() {
 
 function getCurrentDifficulty() {
     const difficulty = window.currentDifficulty;
-    if (difficulty === 'średni' || difficulty === 'trudny') {
+    if (DIFFICULTY_CONFIG.values.includes(difficulty)) {
         return difficulty;
     }
-    return 'łatwy';
+    return DIFFICULTY_CONFIG.default;
 }
 
 function handleMoveResult() {
@@ -162,7 +164,13 @@ function handleMoveResult() {
         updateGameMessage(ui, gameWinner);
         showRestartButton(ui);
 
-        saveGameResult(gameWinner === HUMAN_PLAYER ? 'gracz' : 'komputer');
+        if (gameWinner === PLAYER_IDS.computer) {
+            speakComputer(ui, 'computer_win');
+        } else {
+            speakComputer(ui, 'player_win');
+        }
+
+        saveGameResult(gameWinner === PLAYER_IDS.human ? 'gracz' : 'komputer');
         return true;
     }
 
@@ -171,6 +179,7 @@ function handleMoveResult() {
         gameWinner = 'draw';
         updateGameMessage(ui, gameWinner);
         showRestartButton(ui);
+        speakComputer(ui, 'draw');
 
         saveGameResult('remis');
         return true;
@@ -180,22 +189,31 @@ function handleMoveResult() {
 }
 
 function makeComputerMove() {
-    gameScene.time.delayedCall(250, () => {
-        if (gameWon || currentPlayer !== COMPUTER_PLAYER) {
+    gameScene.time.delayedCall(AI_CONFIG.speech_read_delay_ms, () => {
+        if (gameWon || currentPlayer !== PLAYER_IDS.computer) {
             return;
         }
+
+        const playerThreatMoves = getImmediateWinningMoves(board, PLAYER_IDS.human);
 
         const moveIndex = getComputerMove(board, getCurrentDifficulty());
         if (moveIndex === null || board[moveIndex] !== 0) {
             return;
         }
 
-        board[moveIndex] = COMPUTER_PLAYER;
+        board[moveIndex] = PLAYER_IDS.computer;
         drawSymbol.call(gameScene, moveIndex);
 
         if (!handleMoveResult()) {
+            const blockedPlayerWin = playerThreatMoves.includes(moveIndex);
             currentPlayer = switchPlayer(currentPlayer);
             updateTurnDisplay(ui, currentPlayer);
+
+            if (blockedPlayerWin) {
+                speakComputer(ui, 'computer_blocked');
+            } else {
+                speakComputer(ui, 'player_turn');
+            }
         }
     });
 }
@@ -203,9 +221,9 @@ function makeComputerMove() {
 // Rysowanie symbolu X lub O
 function drawSymbol(cellIndex) {
     const pos = calculateSymbolPosition(cellIndex);
-    const symbolKey = board[cellIndex] === 1 ? 'x-sword' : 'o-circle';
+    const symbolKey = board[cellIndex] === PLAYER_IDS.human ? 'x-sword' : 'o-circle';
     const image = gameScene.add.image(pos.x, pos.y, symbolKey);
-    image.setScale(0.7);
+    image.setScale(GAME_VISUAL_CONFIG.symbol_scale);
 }
 
 function resetGame() {
@@ -222,7 +240,8 @@ function resetGame() {
     childObjects.forEach(child => {
         if ((child instanceof Phaser.GameObjects.Text || child instanceof Phaser.GameObjects.Image) && 
             child !== ui.messageText && child !== ui.restartButton && child !== ui.knightTurnText && child !== ui.carTurnText &&
-            child !== ui.knightIcon && child !== ui.carIcon && child !== ui.playerNameText && child !== ui.computerNameText) {
+            child !== ui.knightIcon && child !== ui.carIcon && child !== ui.playerNameText && child !== ui.computerNameText &&
+            child !== ui.computerSpeechText) {
             child.destroy();
         }
     });
@@ -236,19 +255,22 @@ function resetGame() {
     resetUIForNewGame(ui);
     updateTurnDisplay(ui, currentPlayer);
 
-    if (currentPlayer === COMPUTER_PLAYER) {
+    if (currentPlayer === PLAYER_IDS.computer) {
+        speakComputer(ui, 'start_computer');
         makeComputerMove();
+    } else {
+        speakComputer(ui, 'start_player');
     }
 }
 
 function initializeTrudnyModeMistakeState() {
-    window.trudnyModeMistakeEligible = Math.random() < 0.5;
+    window.trudnyModeMistakeEligible = Math.random() < AI_CONFIG.hard_mode_mistake_probability;
     window.trudnyModeMistakeUsed = false;
 }
 
 function applyStartingPlayerForNewGame() {
     currentPlayer = nextStartingPlayer;
-    window.currentStartingPlayer = currentPlayer === HUMAN_PLAYER ? 'gracz' : 'komputer';
+    window.currentStartingPlayer = currentPlayer === PLAYER_IDS.human ? 'gracz' : 'komputer';
     nextStartingPlayer = switchPlayer(nextStartingPlayer);
 }
 
@@ -263,12 +285,12 @@ function drawWinningLine(winningCombo) {
     const endPos = calculateSymbolPosition(winningCombo[2]);
 
     winLineGraphics = gameScene.add.graphics();
-    winLineGraphics.lineStyle(8, 0xffff00, 1);
+    winLineGraphics.lineStyle(GAME_VISUAL_CONFIG.win_line_width, GAME_VISUAL_CONFIG.win_line_color, 1);
     winLineGraphics.beginPath();
     winLineGraphics.moveTo(startPos.x, startPos.y);
     winLineGraphics.lineTo(endPos.x, endPos.y);
     winLineGraphics.strokePath();
-    winLineGraphics.setDepth(150);
+    winLineGraphics.setDepth(GAME_VISUAL_CONFIG.win_line_depth);
 }
 
 function clearWinningLine() {

@@ -41,7 +41,7 @@ function checkDraw(board) {
  * @returns {number} ID następnego gracza
  */
 function switchPlayer(currentPlayer) {
-    return currentPlayer === 1 ? 2 : 1;
+    return currentPlayer === PLAYER_IDS.human ? PLAYER_IDS.computer : PLAYER_IDS.human;
 }
 
 /**
@@ -50,7 +50,7 @@ function switchPlayer(currentPlayer) {
  * @returns {object} Konfiguracja gracza
  */
 function getPlayerConfig(playerId) {
-    return playerId === 1 ? PLAYERS.knight : PLAYERS.car;
+    return playerId === PLAYER_IDS.human ? PLAYERS.knight : PLAYERS.car;
 }
 
 /**
@@ -117,11 +117,11 @@ function getRandomMoveFromList(moves) {
  * @returns {number} Ocena pozycji
  */
 function minimax(boardState, depth, isMaximizing, maxDepth) {
-    if (checkWin(boardState, 2)) {
+    if (checkWin(boardState, PLAYER_IDS.computer)) {
         return 10 - depth;
     }
 
-    if (checkWin(boardState, 1)) {
+    if (checkWin(boardState, PLAYER_IDS.human)) {
         return depth - 10;
     }
 
@@ -138,7 +138,7 @@ function minimax(boardState, depth, isMaximizing, maxDepth) {
     if (isMaximizing) {
         let bestScore = -Infinity;
         for (const move of availableMoves) {
-            boardState[move] = 2;
+            boardState[move] = PLAYER_IDS.computer;
             const score = minimax(boardState, depth + 1, false, maxDepth);
             boardState[move] = 0;
             if (score > bestScore) {
@@ -150,7 +150,7 @@ function minimax(boardState, depth, isMaximizing, maxDepth) {
 
     let bestScore = Infinity;
     for (const move of availableMoves) {
-        boardState[move] = 1;
+        boardState[move] = PLAYER_IDS.human;
         const score = minimax(boardState, depth + 1, true, maxDepth);
         boardState[move] = 0;
         if (score < bestScore) {
@@ -166,7 +166,7 @@ function getBestMoves(boardState, maxDepth) {
     let bestMoves = [];
 
     for (const move of availableMoves) {
-        boardState[move] = 2;
+        boardState[move] = PLAYER_IDS.computer;
         const score = minimax(boardState, 0, false, maxDepth);
         boardState[move] = 0;
 
@@ -192,7 +192,11 @@ function getComputerMove(boardState, difficulty) {
         return getRandomMove(boardState);
     }
 
-    const maxDepth = difficulty === 'średni' ? 1 : Infinity;
+    if (difficulty === 'średni' && Math.random() < AI_CONFIG.medium_random_move_probability) {
+        return getRandomMove(boardState);
+    }
+
+    const maxDepth = difficulty === 'średni' ? AI_CONFIG.medium_search_depth : Infinity;
     const { availableMoves, bestMoves } = getBestMoves(boardState, maxDepth);
 
     if (availableMoves.length === 0) {
@@ -214,4 +218,25 @@ function getComputerMove(boardState, difficulty) {
 
 function shouldUseTrudnyModeMistake() {
     return Boolean(window.trudnyModeMistakeEligible) && !window.trudnyModeMistakeUsed;
+}
+
+/**
+ * Zwraca ruchy, które dają natychmiastowe zwycięstwo wskazanemu graczowi
+ * @param {number[]} boardState - Aktualny stan planszy
+ * @param {number} player - ID gracza (1 lub 2)
+ * @returns {number[]} Lista indeksów pól wygrywających w 1 ruchu
+ */
+function getImmediateWinningMoves(boardState, player) {
+    const availableMoves = getAvailableMoves(boardState);
+    const winningMoves = [];
+
+    for (const move of availableMoves) {
+        boardState[move] = player;
+        if (checkWin(boardState, player)) {
+            winningMoves.push(move);
+        }
+        boardState[move] = 0;
+    }
+
+    return winningMoves;
 }

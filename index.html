@@ -18,11 +18,7 @@
             <p>Wpisz nazwę gracza:</p>
             <input type="text" id="playerNameInput" placeholder="Twoja nazwa..." maxlength="15" />
             <p>Wybierz poziom trudności:</p>
-            <select id="difficultySelect">
-                <option value="łatwy">Łatwy</option>
-                <option value="średni">Średni</option>
-                <option value="trudny">Trudny</option>
-            </select>
+            <select id="difficultySelect"></select>
             <p id="charCountWarning" style="color: #888; font-size: 14px; margin: 10px 0; height: 20px;"></p>
             <button id="startGameBtn">Rozpocznij grę</button>
         </div>
@@ -80,7 +76,7 @@
     <script>
         // Zmienna globalna z nazwą gracza
         window.currentPlayerName = 'Anonim';
-        window.currentDifficulty = 'łatwy';
+        window.currentDifficulty = DIFFICULTY_CONFIG.default;
         
         // Obsługa modala z nazwą gracza
         document.addEventListener('DOMContentLoaded', () => {
@@ -94,6 +90,11 @@
             const btn = document.getElementById('startGameBtn');
             const warning = document.getElementById('charCountWarning');
 
+            difficultySelect.innerHTML = DIFFICULTY_CONFIG.values.map(level => {
+                const label = DIFFICULTY_CONFIG.labels[level] || level;
+                return `<option value="${level}">${label}</option>`;
+            }).join('');
+
             const updateStartButtonState = () => {
                 const trimmedName = input.value.trim();
                 btn.disabled = trimmedName.length === 0;
@@ -101,7 +102,7 @@
             
             // Wyczyść pole na starcie
             input.value = '';
-            difficultySelect.value = 'łatwy';
+            difficultySelect.value = DIFFICULTY_CONFIG.default;
             updateStartButtonState();
             
             // Pokaż modal

@@ -43,6 +43,38 @@ function createUIElements(scene) {
     ui.computerNameText.setOrigin(0.5, 1);
     ui.computerNameText.setDepth(100);
 
+    // Dymek komputera nad ikoną samochodzika
+    const speechBubbleY = carIconPos.y + COMPUTER_SPEECH_CONFIG.y_offset;
+    ui.computerSpeechBg = scene.add.rectangle(
+        carIconPos.x,
+        speechBubbleY,
+        COMPUTER_SPEECH_CONFIG.width,
+        COMPUTER_SPEECH_CONFIG.height,
+        COMPUTER_SPEECH_CONFIG.background_color,
+        COMPUTER_SPEECH_CONFIG.background_alpha
+    );
+    ui.computerSpeechBg.setStrokeStyle(COMPUTER_SPEECH_CONFIG.border_width, COMPUTER_SPEECH_CONFIG.border_color);
+    ui.computerSpeechBg.setDepth(COMPUTER_SPEECH_CONFIG.bubble_depth);
+
+    ui.computerSpeechTail = scene.add.triangle(
+        carIconPos.x + COMPUTER_SPEECH_CONFIG.tail_offset_x,
+        speechBubbleY + COMPUTER_SPEECH_CONFIG.tail_offset_y,
+        COMPUTER_SPEECH_CONFIG.tail_points.x1,
+        COMPUTER_SPEECH_CONFIG.tail_points.y1,
+        COMPUTER_SPEECH_CONFIG.tail_points.x2,
+        COMPUTER_SPEECH_CONFIG.tail_points.y2,
+        COMPUTER_SPEECH_CONFIG.tail_points.x3,
+        COMPUTER_SPEECH_CONFIG.tail_points.y3,
+        COMPUTER_SPEECH_CONFIG.background_color,
+        COMPUTER_SPEECH_CONFIG.background_alpha
+    );
+    ui.computerSpeechTail.setStrokeStyle(COMPUTER_SPEECH_CONFIG.border_width, COMPUTER_SPEECH_CONFIG.border_color);
+    ui.computerSpeechTail.setDepth(COMPUTER_SPEECH_CONFIG.bubble_depth);
+
+    ui.computerSpeechText = scene.add.text(carIconPos.x, speechBubbleY, '', FONTS.computer_speech);
+    ui.computerSpeechText.setOrigin(0.5, 0.5);
+    ui.computerSpeechText.setDepth(COMPUTER_SPEECH_CONFIG.text_depth);
+
     // Tekst wiadomości poniżej planszy
     const messagePos = UI_POSITIONS.message_text;
     ui.messageText = scene.add.text(messagePos.x, messagePos.y, '', FONTS.message);
@@ -58,15 +90,31 @@ function createUIElements(scene) {
     return ui;
 }
 
+function getRandomDialogLine(lines) {
+    if (!lines || lines.length === 0) {
+        return '';
+    }
+
+    const randomIndex = Math.floor(Math.random() * lines.length);
+    return lines[randomIndex];
+}
+
+function setComputerSpeech(ui, text) {
+    if (!ui || !ui.computerSpeechText) {
+        return;
+    }
+
+    ui.computerSpeechText.setText(text || COMPUTER_SPEECH_CONFIG.fallback_text);
+}
+
+function speakComputer(ui, contextKey) {
+    const lines = COMPUTER_DIALOGS[contextKey] || [];
+    setComputerSpeech(ui, getRandomDialogLine(lines));
+}
+
 function getDifficultyLabel() {
     const difficulty = window.currentDifficulty;
-    if (difficulty === 'trudny') {
-        return 'Trudny';
-    }
-    if (difficulty === 'średni') {
-        return 'Średni';
-    }
-    return 'Łatwy';
+    return DIFFICULTY_CONFIG.labels[difficulty] || DIFFICULTY_CONFIG.labels[DIFFICULTY_CONFIG.default];
 }
 
 function getComputerLabelWithDifficulty() {

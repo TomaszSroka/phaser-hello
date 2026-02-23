@@ -97,10 +97,10 @@ function isValidresult(result) {
 
 function getCurrentDifficultyValue() {
     const difficulty = window.currentDifficulty;
-    if (difficulty === 'średni' || difficulty === 'trudny') {
+    if (DIFFICULTY_CONFIG.values.includes(difficulty)) {
         return difficulty;
     }
-    return 'łatwy';
+    return DIFFICULTY_CONFIG.default;
 }
 
 function getCurrentStartingPlayerValue() {
